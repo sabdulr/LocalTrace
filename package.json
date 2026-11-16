@@ -1,0 +1,75 @@
+{
+  "name": "localtrace",
+  "version": "0.2.0",
+  "private": true,
+  "description": "Offline layered raster vectorizer",
+  "author": "LocalTrace contributors",
+  "license": "MIT",
+  "main": "electron/main.cjs",
+  "scripts": {
+    "start": "node server/server.cjs",
+    "web": "npm run build && npm start",
+    "dev": "vite --host 127.0.0.1",
+    "desktop": "electron .",
+    "build": "tsc --noEmit && vite build",
+    "test": "vitest run",
+    "test:e2e": "playwright test",
+    "test:web": "playwright test --config playwright.web.config.ts",
+    "dist": "npm run build && npm run notices && electron-builder --win nsis",
+    "notices": "node scripts/notices.cjs",
+    "format": "prettier --write src core electron tests e2e scripts/*.cjs *.ts package.json",
+    "dist:all": "powershell -NoProfile -ExecutionPolicy Bypass -File scripts/build.ps1"
+  },
+  "dependencies": {
+    "@visioncortex/vtracer": "1.0.0-alpha.4",
+    "@xmldom/xmldom": "0.9.12",
+    "polygon-clipping": "0.15.7",
+    "react": "19.3.1",
+    "react-dom": "19.3.1",
+    "sharp": "0.35.5",
+    "svgpath": "2.6.0",
+    "zustand": "5.1.0"
+  },
+  "devDependencies": {
+    "@playwright/test": "1.65.1",
+    "@tailwindcss/vite": "4.1.17",
+    "@types/react": "19.2.2",
+    "@types/react-dom": "19.2.2",
+    "@vitejs/plugin-react": "5.1.1",
+    "electron": "45.3.2",
+    "electron-builder": "26.18.0",
+    "prettier": "3.10.1",
+    "tailwindcss": "4.1.17",
+    "typescript": "5.9.3",
+    "vite": "7.3.8",
+    "vitest": "4.1.12"
+  },
+  "build": {
+    "appId": "org.localtrace.desktop",
+    "productName": "LocalTrace",
+    "asarUnpack": [
+      "node_modules/sharp/**/*",
+      "node_modules/@img/**/*"
+    ],
+    "files": [
+      "dist/**/*",
+      "electron/**/*",
+      "core/**/*",
+      "package.json",
+      "LICENSE",
+      "THIRD_PARTY_NOTICES.md",
+      "README.md",
+      "ARCHITECTURE.md"
+    ],
+    "win": {
+      "target": "nsis"
+    },
+    "nsis": {
+      "oneClick": false,
+      "allowToChangeInstallationDirectory": true
+    },
+    "directories": {
+      "output": "release-v0.2.0"
+    }
+  }
+}
