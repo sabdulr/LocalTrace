@@ -623,6 +623,8 @@ Finish with links to the actual outputs and documentation, the tests that passed
 
 # Supplemental requirements — local browser application
 
+Docker extension: provide a multi-stage Dockerfile, allowlisted .dockerignore, compose.yaml, .env.example and Docker.md for Ubuntu servers. Build/test assets in Linux, skip Electron binary download during build, install production dependencies separately, and run Node as a non-root user. Bind to HOST=0.0.0.0 only in server deployment while preserving loopback local defaults. Require PUBLIC_ORIGIN for Compose; validate exact HTTP(S) origin/Host, reject mismatches and do not trust forwarded headers. Support HTTPS reverse proxies preserving Host, a liveness health endpoint, graceful worker shutdown and browser HTTP-LAN session IDs without secure-context randomUUID. Document that processing occurs on the server, no authentication is included, and project persistence is browser downloads. Keep public access behind HTTPS/authentication. Test image build and real conversion on the target Ubuntu host before claiming container verification; document any unavailable Docker daemon. Docker deployment supersedes local-only network assumptions in the following baseline.
+
 This section takes precedence over desktop-only launch, dialog, network and export assumptions above. Preserve the Windows desktop implementation while adding the browser version; do not replace working tracing with a mock or an SVG containing the original raster.
 
 ## Runtime and launch

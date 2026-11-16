@@ -1,0 +1,18 @@
+services:
+  localtrace:
+    build:
+      context: .
+      dockerfile: "${LOCALTRACE_DOCKERFILE:-Dockerfile}"
+    ports:
+      - "${BIND_ADDRESS:-0.0.0.0}:${WEB_PORT:-4173}:4173"
+    environment:
+      PUBLIC_ORIGIN: "${PUBLIC_ORIGIN:?Set PUBLIC_ORIGIN in .env to the exact browser URL}"
+    restart: unless-stopped
+    init: true
+    read_only: true
+    tmpfs:
+      - /tmp:size=128m,mode=1777
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL

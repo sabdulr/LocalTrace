@@ -19,6 +19,10 @@ Use this alongside [Build_Instructions.md](Build_Instructions.md). Check items o
 
 ## Browser verification (when releasing browser mode)
 
+- [ ] For Docker, build on Ubuntu with `docker compose up -d --build`, verify healthy status and test from another computer using the configured PUBLIC_ORIGIN.
+- [ ] Perform actual container conversion, editing, project round-trip, ZIP extraction and exports; verify proxy Host/Origin handling and HTTPS if deployed behind a proxy.
+- [ ] Check container restart/shutdown, downloaded project persistence, target architecture, and lack of Electron/runtime development tools. See [Docker.md](Docker.md).
+
 - [ ] Install dependencies on each target OS/architecture; do not reuse another platform's `node_modules`.
 - [ ] Run `npm test`, `npm run build`, and `npm run test:web` explicitly; the desktop build script does not run web tests.
 - [ ] Stop existing port-4173 servers before web automation; record the Playwright browser/channel used.

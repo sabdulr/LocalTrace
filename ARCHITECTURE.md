@@ -2,6 +2,8 @@
 
 ## Boundaries
 
+Docker deployment adds explicit HOST and PUBLIC_ORIGIN configuration. Normal local launch still defaults to loopback. The container listens on `0.0.0.0`; PUBLIC_ORIGIN supplies the one allowed external host/origin, including HTTPS behind a proxy. Forwarded headers are not trusted. `/healthz` supplies process liveness without host validation. SIGTERM/SIGINT close connections and terminate engine workers. The multi-stage Dockerfile builds/tests on Linux, installs production dependencies separately, and runs Node as a non-root user; Compose adds a read-only filesystem. See [Docker.md](Docker.md). Server uploads replace the local-only processing assumption in this mode, and browser downloads remain the persistence mechanism.
+
 The React editor uses the typed `window.localtrace` API in both modes. Electron supplies it through the preload. In a normal browser, `src/browser.ts` installs an HTTP bridge only when the API is absent. Both modes share the editor, model, store, engine, and geometry code.
 
 `server/server.cjs` serves built Vite assets from `dist` and an allowlist of `/api/` operations using Node HTTP. It binds to `127.0.0.1` on PORT (default 4173), checks the exact host/port, requires the matching Origin and JSON content type for API POSTs, and enables no CORS. Request bodies are capped at 120 MB; project/document fields are validated and no browser-supplied filesystem destination is accepted. Static paths are confined to dist. This is a local server without remote authentication or public/LAN hosting configuration.

@@ -4,6 +4,8 @@ Applies to version **0.2.0**, including the browser addition. Run commands from 
 
 ## Browser setup and launch
 
+For Ubuntu server deployment, follow [Docker.md](Docker.md). The Docker build installs Linux dependencies and builds assets; Node/npm on the host are unnecessary. Compose requires an explicit PUBLIC_ORIGIN and publishes the configured host port.
+
 For this prepared Windows checkout, double-click `Launch LocalTrace Web.cmd`, then visit `http://127.0.0.1:4173`. Keep its terminal open. The launcher requires `dist/index.html` and installed dependencies. It checks Node on PATH, `%ProgramFiles%\nodejs\node.exe`, then `node_modules\electron\dist\electron.exe` with `ELECTRON_RUN_AS_NODE=1`. It does not install packages or rebuild assets. `Launch LocalTrace.cmd` launches the separate desktop version.
 
 For a fresh machine, install Node.js **22.12 or newer** with npm for the target OS/architecture, reopen the terminal, and check `node --version` and `npm --version`. Then run:

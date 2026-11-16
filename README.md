@@ -4,6 +4,10 @@ A raster-to-vector converter and SVG editor with a browser application for Windo
 
 ## Run in a browser (Windows, Linux, macOS)
 
+For an Ubuntu server, use Docker: copy `.env.example` to `.env`, set `PUBLIC_ORIGIN` to your server's browser URL, then run `docker compose up -d --build`. Open that URL from another computer. See [Docker.md](Docker.md) for complete setup, reverse proxy, health and update instructions. In this mode processing happens on your server.
+
+For Sharp's unsupported-CPU/v2 error on older servers or VMs, set `LOCALTRACE_DOCKERFILE=Dockerfile.compat` in `.env` before building. This compiles Sharp and libvips from source; see [Docker.md](Docker.md).
+
 On this Windows checkout, double-click **Launch LocalTrace Web.cmd** and open **http://127.0.0.1:4173**. The launcher checks Node.js on PATH, the standard Program Files installation, then the existing `node_modules/electron/dist/electron.exe` runtime. It requires an existing `dist/index.html` and installed dependencies. Keep its terminal window open while using the app. `Launch LocalTrace.cmd` launches the separate desktop version.
 
 For a fresh setup on any supported platform, install Node.js 22.12 or newer and npm for your operating system, reopen your terminal, then run these commands from this project folder:

@@ -61,6 +61,10 @@ Actual Cricut Design Space and Inkscape interoperability has not been manually c
 
 ### Browser version (Windows, Linux, macOS)
 
+For Docker/Ubuntu deployment, follow [Docker.md](Docker.md). Include `docker compose ps`, relevant container logs, PUBLIC_ORIGIN and the browser URL when reporting connection problems. Docker uses HOST=0.0.0.0 inside the container; exact configured host/origin checks still apply. Processing takes place on the server rather than the browser computer.
+
+If Docker reports Sharp's **Unsupported CPU / v2 microarchitecture** error, set `LOCALTRACE_DOCKERFILE=Dockerfile.compat` in `.env` and rebuild. This compiles both Sharp and libvips from source for older CPUs/VMs. Keep tests enabled. See [Docker.md](Docker.md) for details and verification limits.
+
 On this Windows checkout, double-click `Launch LocalTrace Web.cmd`, wait for the server address, then open `http://127.0.0.1:4173`. Keep the terminal open. This launcher can use the already-installed Electron runtime when Node.js is missing from PATH; it does not install dependencies or build the app. `Launch LocalTrace.cmd` opens the desktop version instead.
 
 For a fresh machine, install Node.js 22.12 or newer with npm, reopen your terminal, and run `npm ci` followed by `npm run web` from the project folder. Subsequent launches use `npm start`. Install native dependencies on each OS; do not copy Windows `node_modules` to Linux or macOS.

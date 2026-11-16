@@ -1,6 +1,7 @@
 // Electron supplies its own bridge. Browsers use the local HTTP server.
 if (!window.localtrace) {
-  const client = crypto.randomUUID();
+  // randomUUID requires HTTPS outside localhost. LAN HTTP still supports random bytes.
+  const client = Array.from(crypto.getRandomValues(new Uint8Array(16)), byte => byte.toString(16).padStart(2, '0')).join('');
   async function request(operation: string, data: unknown = {}) {
     const response = await fetch(`/api/${operation}`, {
       method: 'POST',

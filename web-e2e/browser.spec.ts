@@ -45,9 +45,9 @@ test('browser conversion, editing, downloads and project reopening', async ({ pa
   await print.close();
   expect(errors).toEqual([]);
 });
-test('rejects cross-origin API access and invalid documents', async ({ request }) => {
+test('rejects cross-origin API access and invalid documents', async ({ request, baseURL }) => {
   const response = await request.post('/api/cancel', { data: {}, headers: { Origin: 'https://example.com', 'X-LocalTrace-Client': 'test' } });
   expect(response.status()).toBe(403);
-  const invalid = await request.post('/api/export', { data: { doc: {}, kind: 'svg' }, headers: { Origin: 'http://127.0.0.1:4173', 'X-LocalTrace-Client': 'test' } });
+  const invalid = await request.post('/api/export', { data: { doc: {}, kind: 'svg' }, headers: { Origin: baseURL!, 'X-LocalTrace-Client': 'test' } });
   expect(invalid.status()).toBe(400);
 });

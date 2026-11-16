@@ -12,6 +12,7 @@ Copy this template into an issue or support message. There is no automatic uploa
 - Browser URL and port, if applicable:
 - Launch command or launcher filename:
 - Node.js version and npm version, if available:
+- Docker deployment: image/build date, host architecture, Compose version, container health, PUBLIC_ORIGIN and published port:
 - Is the server terminal still open? Include its startup/error text:
 - Dependency installation platform (were dependencies installed on this OS?):
 - RAM (if a performance problem):

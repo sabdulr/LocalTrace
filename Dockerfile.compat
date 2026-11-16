@@ -1,0 +1,77 @@
+# syntax=docker/dockerfile:1
+# Older x86-64 CPUs/VMs: compile BOTH libvips and sharp rather than using
+# Sharp's x86-64-v2 prebuilt libraries. Keep package.json/lockfile unchanged.
+FROM node:24-bookworm-slim AS runtime-base
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    libglib2.0-0 libexpat1 libjpeg62-turbo libpng16-16 \
+    libwebp7 libwebpdemux2 libwebpmux3 libtiff6 librsvg2-2 libexif12 liblcms2-2 \
+    && rm -rf /var/lib/apt/lists/*
+ENV LD_LIBRARY_PATH=/opt/vips/lib
+
+FROM runtime-base AS native-build
+ARG VIPS_VERSION=8.18.7
+ARG BUILD_JOBS=2
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    build-essential python3 meson ninja-build pkg-config curl ca-certificates \
+    libglib2.0-dev libexpat1-dev libjpeg62-turbo-dev libpng-dev \
+    libwebp-dev libtiff-dev librsvg2-dev libexif-dev liblcms2-dev \
+    && rm -rf /var/lib/apt/lists/*
+# Generic compiler target, with optional SIMD engines disabled. Do not use -march=native.
+RUN curl -fL --retry 3 "https://github.com/libvips/libvips/archive/refs/tags/v${VIPS_VERSION}.tar.gz" -o /tmp/vips.tar.gz \
+    && mkdir /tmp/vips \
+    && tar -xzf /tmp/vips.tar.gz -C /tmp/vips --strip-components=1 \
+    && test -f /tmp/vips/LICENSE
+RUN meson setup /tmp/vips/build /tmp/vips --prefix=/opt/vips --libdir=lib \
+       -Dintrospection=disabled -Dexamples=false -Dhighway=disabled -Dorc=disabled \
+       -Djpeg=enabled -Dpng=enabled -Dwebp=enabled -Drsvg=enabled -Dnsgif=true \
+    && meson compile -C /tmp/vips/build -j "${BUILD_JOBS}" \
+    && meson install -C /tmp/vips/build
+RUN mkdir -p /opt/vips/share/licenses/libvips \
+    && cp /tmp/vips/LICENSE /opt/vips/share/licenses/libvips/LICENSE \
+    && rm -rf /tmp/vips /tmp/vips.tar.gz
+RUN npm install --prefix /opt/sharp-tools --no-audit --no-fund \
+    node-addon-api@8.5.0 node-gyp@12.4.0
+ENV NODE_PATH=/opt/sharp-tools/node_modules \
+    PATH=/opt/sharp-tools/node_modules/.bin:$PATH \
+    PKG_CONFIG_PATH=/opt/vips/lib/pkgconfig \
+    SHARP_FORCE_GLOBAL_LIBVIPS=1 \
+    ELECTRON_SKIP_BINARY_DOWNLOAD=1 \
+    npm_config_nodedir=/usr/local \
+    npm_config_jobs=2
+WORKDIR /app
+
+FROM native-build AS build
+COPY package.json package-lock.json ./
+RUN npm ci && npm explore sharp -- npm run build \
+    && node -e "console.log(require('sharp').versions)"
+COPY src ./src
+COPY core ./core
+COPY tests ./tests
+COPY server ./server
+COPY electron/worker.cjs ./electron/worker.cjs
+COPY index.html tsconfig.json vite.config.ts vitest.config.ts ./
+RUN npm test && npm run build
+
+FROM native-build AS dependencies
+COPY package.json package-lock.json ./
+RUN npm ci --omit=dev && npm explore sharp -- npm run build \
+    && node -e "console.log(require('sharp').versions)" \
+    && npm cache clean --force
+
+FROM runtime-base AS runtime
+WORKDIR /app
+ENV NODE_ENV=production HOST=0.0.0.0 PORT=4173
+COPY --from=native-build /opt/vips /opt/vips
+COPY --from=dependencies /app/node_modules ./node_modules
+COPY --from=build /app/dist ./dist
+COPY core ./core
+COPY server ./server
+COPY electron/worker.cjs ./electron/worker.cjs
+COPY package.json LICENSE THIRD_PARTY_NOTICES.md ./
+COPY vendor-licenses ./vendor-licenses
+# Check native linkage and SVG input in the final image, too.
+RUN node -e "require('sharp')(Buffer.from('<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"8\" height=\"8\"><rect width=\"8\" height=\"8\" fill=\"red\"/></svg>')).png().toBuffer().then(()=>console.log('Sharp SVG/PNG ready')).catch(e=>{console.error(e);process.exit(1)})"
+USER node
+EXPOSE 4173
+HEALTHCHECK --interval=30s --timeout=5s --start-period=10s --retries=3 CMD ["node", "-e", "fetch('http://127.0.0.1:4173/healthz').then(r=>{if(!r.ok)process.exit(1)}).catch(()=>process.exit(1))"]
+CMD ["node", "server/server.cjs"]

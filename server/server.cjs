@@ -6,7 +6,13 @@ const { parseSVG, exportSVG } = require('../core/document.cjs');
 const { validateDoc } = require('../core/validate.cjs');
 const root = path.resolve(__dirname, '../dist');
 
-function createServer() {
+function createServer({ publicOrigin = process.env.PUBLIC_ORIGIN } = {}) {
+  let external;
+  if (publicOrigin) {
+    external = new URL(publicOrigin);
+    if (!['http:', 'https:'].includes(external.protocol) || external.origin !== publicOrigin)
+      throw Error('PUBLIC_ORIGIN must be an exact http(s) origin without a trailing slash or path');
+  }
   const jobs = new Map();
   function job(client, operation, args) {
     if (jobs.has(client)) throw Error('Another operation is running');
@@ -24,12 +30,13 @@ function createServer() {
   const server = http.createServer(async (req, res) => {
     const json = (status, value) => { res.writeHead(status, { 'Content-Type': 'application/json' }); res.end(JSON.stringify(value)); };
     try {
-      const authority = `127.0.0.1:${server.address().port}`;
+      if (req.url === '/healthz' && req.method === 'GET') return json(200, { status: 'ok' });
+      const authority = external?.host || `127.0.0.1:${server.address().port}`;
       if (req.headers.host !== authority) return json(403, { error: 'Invalid host' });
       res.setHeader('X-Content-Type-Options', 'nosniff');
       res.setHeader('Cache-Control', 'no-store');
       if (req.url.startsWith('/api/')) {
-        if (req.method !== 'POST' || req.headers.origin !== `http://${authority}` || !req.headers['content-type']?.startsWith('application/json'))
+        if (req.method !== 'POST' || req.headers.origin !== (external?.origin || `http://${authority}`) || !req.headers['content-type']?.startsWith('application/json'))
           return json(403, { error: 'Same-origin JSON requests required' });
         let size = 0; const chunks = [];
         for await (const chunk of req) { size += chunk.length; if (size > 120e6) { json(413, { error: 'Request exceeds 120 MB limit' }); return; } chunks.push(chunk); }
@@ -85,7 +92,14 @@ function createServer() {
 }
 if (require.main === module) {
   const server = createServer();
-  server.listen(Number(process.env.PORT || 4173), '127.0.0.1', () => console.log(`LocalTrace: http://127.0.0.1:${server.address().port}`));
+  const host = process.env.HOST || '127.0.0.1';
+  server.listen(Number(process.env.PORT || 4173), host, () => console.log(`LocalTrace: ${process.env.PUBLIC_ORIGIN || `http://127.0.0.1:${server.address().port}`} (listening on ${host})`));
+  const stop = () => {
+    server.close();
+    server.closeAllConnections();
+  };
+  process.once('SIGTERM', stop);
+  process.once('SIGINT', stop);
   server.on('error', error => { console.error(error.message); process.exitCode = 1; });
 }
 module.exports = { createServer };
