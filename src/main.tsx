@@ -115,17 +115,20 @@ function App() {
       setMessage("Ready. Adjust the palette, then convert.");
     });
   }
-  async function refreshPalette(useCurrent = false) {
+  async function refreshPalette(useCurrent = false, palette?: string[]) {
     if (!bytes) return;
     await run("Preparing palette", async () => {
       const result = await window.localtrace.prepare(bytes, count, {
         ...settings,
-        palette: useCurrent ? settings.palette : undefined,
+        palette: palette ?? (useCurrent ? settings.palette : undefined),
       });
       setPrepared(result);
       patch({ palette: result.palette });
+      if (palette) setComparison("quantized");
       setMessage(
-        "Quantized preview updated. Convert to apply changes to paths.",
+        palette
+          ? "Black and white preview ready. Click Convert to update paths. Detect colors restores the source palette."
+          : "Quantized preview updated. Convert to apply changes to paths.",
       );
     });
   }
@@ -500,6 +503,16 @@ function App() {
                 : doc
                   ? `${doc.width} × ${doc.height} px`
                   : "Up to 16 megapixels · 40 MB"}
+            </small>
+            <button
+              disabled={!bytes || !!busy}
+              onClick={() => void refreshPalette(false, ["#000000", "#ffffff"])}
+            >
+              Make black and white
+            </button>
+            <small className="muted">
+              Preview with black and white only, preserving transparency. Click
+              Convert to trace it, or Detect colors to return to color.
             </small>
           </section>
           <section>

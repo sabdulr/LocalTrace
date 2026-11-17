@@ -45,7 +45,7 @@ Use `release-v0.2.0/LocalTrace Setup 0.2.0.exe` to install, or run `release-v0.2
 
 1. Open or drag in an image.
 2. Inspect detected colors. Change the color count, add/sample/recolor/remove palette entries, then use **Preview palette** to inspect pixel reassignment.
-3. Choose a tracing preset and geometry mode. Click **Convert**.
+3. Choose a tracing preset and geometry mode. Click **Convert**. For black-and-white artwork, click **Make black and white** under Source image first. It selects a pure black/white palette and opens the quantized preview, preserving the original and transparency. **Detect colors** restores the source palette; paths change only when converted.
 4. Expand color layers on the right to select individual shapes. Shift-click for multiple selection. Drag on the canvas to move shapes.
 5. Recolor a layer or selection, set stroke/opacity, duplicate, delete, reorder, hide, or lock layers. Undo/redo uses Ctrl+Z / Ctrl+Y; Delete removes unlocked selected paths.
 6. Use **Edit nodes & handles** for anchors and Bézier control handles. Double-click an anchor to remove it. Path operations act on entire selected paths. Breaking compound paths can fill former holes: inspect the result and undo if unsuitable.
